@@ -81,7 +81,8 @@ function runSetupCommands() {
     "bun add react-dropzone@^14.2.0",
     "bun add monaco-editor@^0.47.0",
     "bun add @monaco-editor/react@^4.6.0",
-    "bun add zustand"
+    "bun add zustand",
+    "bun install react react-dom"
 ];
     
     if (commands.length === 0) {
