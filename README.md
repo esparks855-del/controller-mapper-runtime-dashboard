@@ -2,7 +2,7 @@
 
 A visually stunning, high-performance web dashboard designed to manage, validate, and visualize controller mapping configurations for the Windows desktop runtime engine.
 
-[aureliabutton]
+[![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/esparks855-del/controller-mapper-runtime-dashboard)
 
 ## 🚀 Overview
 
@@ -89,7 +89,7 @@ bun run build
 
 This project is configured for deployment on Cloudflare Workers.
 
-[aureliabutton]
+[![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/esparks855-del/controller-mapper-runtime-dashboard)
 
 To deploy manually via the command line:
 
