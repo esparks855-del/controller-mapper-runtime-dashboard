@@ -2,7 +2,7 @@ import { z } from 'zod';
 export const ActionSchema = z.object({
   type: z.enum(['key', 'mouseBtn', 'mouseMove', 'macro', 'modeSwitch']),
   value: z.string().describe("The key code, mouse button, or value associated with the action"),
-  params: z.record(z.any()).optional().describe("Optional parameters for complex actions"),
+  params: z.record(z.string(), z.any()).optional().describe("Optional parameters for complex actions"),
 });
 export type Action = z.infer<typeof ActionSchema>;
 export const BindingSchema = z.object({

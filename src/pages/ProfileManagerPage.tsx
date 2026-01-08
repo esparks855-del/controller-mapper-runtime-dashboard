@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Upload, Trash2, Edit, Copy, Download, Calendar, Gamepad2 } from 'lucide-react';
+import { Plus, Upload, Trash2, Edit, Copy, Github, Calendar, Gamepad2 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { DEFAULT_MAPPING } from '@/lib/schema';
 export function ProfileManagerPage() {
@@ -37,25 +37,9 @@ export function ProfileManagerPage() {
     addProfile({ ...rest, title: `${profile.title} (Copy)` });
     toast.success("Profile Duplicated");
   };
-  const handleExport = (profile: Profile, e: React.MouseEvent) => {
+  const handleExportGithub = (e: React.MouseEvent) => {
     e.stopPropagation();
-    try {
-      // Create a clean version of the profile for export (remove internal IDs if needed, but keeping them is fine)
-      const jsonString = JSON.stringify(profile, null, 2);
-      const blob = new Blob([jsonString], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `${profile.title.replace(/[^a-z0-9]/gi, '_').toLowerCase() || 'profile'}.json`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
-      toast.success("Export Successful", { description: `Downloaded ${link.download}` });
-    } catch (error) {
-      console.error("Export failed:", error);
-      toast.error("Export Failed", { description: "Could not generate JSON file." });
-    }
+    toast.info("Export to GitHub", { description: "This feature is coming soon!" });
   };
   const handleImportClick = () => {
     fileInputRef.current?.click();
@@ -92,7 +76,7 @@ export function ProfileManagerPage() {
               type="file" 
               ref={fileInputRef} 
               className="hidden" 
-              accept=".json"
+              accept=".json" 
               onChange={handleFileChange}
             />
             <Button variant="outline" onClick={handleImportClick}>
@@ -150,8 +134,8 @@ export function ProfileManagerPage() {
                 </CardContent>
                 <CardFooter className="pt-3 border-t bg-muted/20">
                   <div className="w-full flex justify-between items-center">
-                    <Button variant="ghost" size="sm" className="text-xs h-7" onClick={(e) => handleExport(profile, e)}>
-                      <Download className="w-3 h-3 mr-1.5" />
+                    <Button variant="ghost" size="sm" className="text-xs h-7" onClick={(e) => handleExportGithub(e)}>
+                      <Github className="w-3 h-3 mr-1.5" />
                       Export
                     </Button>
                     <Button size="sm" className="h-7 bg-secondary hover:bg-secondary/80 text-secondary-foreground" onClick={(e) => { e.stopPropagation(); handleEdit(profile); }}>

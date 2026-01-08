@@ -1,5 +1,5 @@
 import React from "react";
-import { Home, Gamepad2, FileJson, BookOpen, Settings, Download } from "lucide-react";
+import { Home, Gamepad2, FileJson, BookOpen, Settings, Download, Library } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -36,15 +36,23 @@ export function AppSidebar(): JSX.Element {
             <SidebarMenuItem>
               <SidebarMenuButton asChild isActive={pathname === "/"}>
                 <Link to="/">
-                  <Home /> 
+                  <Home />
                   <span>Dashboard</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+              <SidebarMenuButton asChild isActive={pathname === "/profiles"}>
+                <Link to="/profiles">
+                  <Library />
+                  <span>Profile Manager</span>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
               <SidebarMenuButton asChild isActive={pathname === "/visualizer"}>
                 <Link to="/visualizer">
-                  <FileJson /> 
+                  <FileJson />
                   <span>Visualizer & Editor</span>
                 </Link>
               </SidebarMenuButton>
@@ -56,19 +64,19 @@ export function AppSidebar(): JSX.Element {
           <SidebarGroupLabel>Resources</SidebarGroupLabel>
           <SidebarMenu>
             <SidebarMenuItem>
-              <SidebarMenuButton asChild>
-                <a href="#" className="opacity-50 cursor-not-allowed" title="Coming Soon">
-                  <BookOpen /> 
+              <SidebarMenuButton asChild isActive={pathname === "/docs"}>
+                <Link to="/docs">
+                  <BookOpen />
                   <span>Documentation</span>
-                </a>
+                </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
               <SidebarMenuButton asChild>
-                <a href="#" className="opacity-50 cursor-not-allowed" title="Coming Soon">
-                  <Download /> 
+                <Link to="/docs">
+                  <Download />
                   <span>Download Runtime</span>
-                </a>
+                </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
           </SidebarMenu>

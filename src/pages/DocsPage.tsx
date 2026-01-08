@@ -4,19 +4,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Download, Terminal, FileJson, AlertTriangle } from 'lucide-react';
-import { toast } from 'sonner';
 export function DocsPage() {
-  const handleDownload = (platform: string) => {
-    toast.success(`Downloading Runtime for ${platform}...`, {
-      description: "The download should start automatically.",
-    });
-    // Simulate download delay
-    setTimeout(() => {
-      toast.info("Download Complete (Simulated)", {
-        description: "In a real app, the .exe would be downloaded now."
-      });
-    }, 1500);
-  };
   return (
     <AppLayout container>
       <div className="space-y-8 max-w-4xl mx-auto">
@@ -40,20 +28,12 @@ export function DocsPage() {
                 <CardDescription>Get the latest version of the runtime engine for your platform.</CardDescription>
               </CardHeader>
               <CardContent className="flex flex-col sm:flex-row gap-4">
-                <Button 
-                  className="flex-1 h-16 text-lg" 
-                  variant="outline"
-                  onClick={() => handleDownload("Windows (x64)")}
-                >
+                <Button className="flex-1 h-16 text-lg" variant="outline">
                   <Download className="mr-2 h-5 w-5" />
                   Windows (x64)
                   <span className="ml-2 text-xs text-muted-foreground block sm:inline">v1.0.2</span>
                 </Button>
-                <Button 
-                  className="flex-1 h-16 text-lg" 
-                  variant="outline"
-                  onClick={() => handleDownload("Windows (ARM64)")}
-                >
+                <Button className="flex-1 h-16 text-lg" variant="outline">
                   <Download className="mr-2 h-5 w-5" />
                   Windows (ARM64)
                   <span className="ml-2 text-xs text-muted-foreground block sm:inline">v1.0.2</span>
@@ -141,7 +121,7 @@ export function DocsPage() {
                 </CardHeader>
                 <CardContent>
                   <p className="text-sm text-muted-foreground">
-                    Ensure your controller is connected via USB or Bluetooth before starting the runtime.
+                    Ensure your controller is connected via USB or Bluetooth before starting the runtime. 
                     If using an Xbox controller, verify it appears in Windows "Game Controllers" settings.
                   </p>
                 </CardContent>

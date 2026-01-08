@@ -6,44 +6,50 @@ interface ConfigState {
   rawJson: string;
   validationError: string | null;
   activeModeId: string | null;
+  currentProfileId: string | null; // Track if we are editing a saved profile
   // Actions
-  loadConfig: (json: string) => void;
+  loadConfig: (json: string, profileId?: string) => void;
   setRawJson: (json: string) => void;
   setActiveModeId: (id: string | null) => void;
   reset: () => void;
+  saveToLibrary: () => void; // Stub for now, logic handled in components or profileStore
 }
 export const useConfigStore = create<ConfigState>((set, get) => ({
   config: DEFAULT_MAPPING,
   rawJson: JSON.stringify(DEFAULT_MAPPING, null, 2),
   validationError: null,
   activeModeId: 'default',
-  loadConfig: (json: string) => {
+  currentProfileId: null,
+  loadConfig: (json: string, profileId?: string) => {
     try {
       const parsed = JSON.parse(json);
       const result = MappingSchema.safeParse(parsed);
       if (result.success) {
-        set({ 
-          config: result.data, 
-          rawJson: json, 
+        set({
+          config: result.data,
+          rawJson: json,
           validationError: null,
           // If current active mode doesn't exist in new config, switch to default
-          activeModeId: result.data.modes.find(m => m.id === get().activeModeId) 
-            ? get().activeModeId 
-            : result.data.defaultMode
+          activeModeId: result.data.modes.find(m => m.id === get().activeModeId)
+            ? get().activeModeId
+            : result.data.defaultMode,
+          currentProfileId: profileId || null
         });
       } else {
         // It's valid JSON but invalid Schema
         const errorMsg = result.error.errors.map(e => `${e.path.join('.')}: ${e.message}`).join(', ');
-        set({ 
-          rawJson: json, 
-          validationError: `Schema Error: ${errorMsg}` 
+        set({
+          rawJson: json,
+          validationError: `Schema Error: ${errorMsg}`,
+          currentProfileId: null
         });
       }
     } catch (e) {
       // Invalid JSON
-      set({ 
-        rawJson: json, 
-        validationError: e instanceof Error ? `JSON Error: ${e.message}` : "Invalid JSON" 
+      set({
+        rawJson: json,
+        validationError: e instanceof Error ? `JSON Error: ${e.message}` : "Invalid JSON",
+        currentProfileId: null
       });
     }
   },
@@ -69,6 +75,12 @@ export const useConfigStore = create<ConfigState>((set, get) => ({
     config: DEFAULT_MAPPING,
     rawJson: JSON.stringify(DEFAULT_MAPPING, null, 2),
     validationError: null,
-    activeModeId: 'default'
-  })
+    activeModeId: 'default',
+    currentProfileId: null
+  }),
+  saveToLibrary: () => {
+    // This is a stub. The actual saving logic will be handled by the component
+    // calling profileStore actions using the current config from this store.
+    console.log("Save to library triggered");
+  }
 }));

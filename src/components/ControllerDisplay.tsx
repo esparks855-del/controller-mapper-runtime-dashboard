@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { Mapping, Mode } from '@/lib/schema';
+import { Mapping } from '@/lib/schema';
 import { cn } from '@/lib/utils';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 interface ControllerDisplayProps {
@@ -8,8 +8,13 @@ interface ControllerDisplayProps {
   activeModeId: string | null;
   className?: string;
 }
+type BaseButton = { label: string; };
+type CircleButton = BaseButton & { cx: number; cy: number; r: number; color?: string };
+type RectButton = BaseButton & { type: 'rect'; x: number; y: number; w: number; h: number; rx: number };
+type PathButton = BaseButton & { type: 'path'; d: string };
+type ButtonDef = CircleButton | RectButton | PathButton;
 // Button definitions with SVG paths and positions
-const BUTTONS = {
+const BUTTONS: Record<string, ButtonDef> = {
   // Face Buttons
   A: { cx: 420, cy: 230, r: 18, label: 'A', color: 'fill-green-500' },
   B: { cx: 460, cy: 190, r: 18, label: 'B', color: 'fill-red-500' },
@@ -40,9 +45,6 @@ export function ControllerDisplay({ mapping, activeModeId, className }: Controll
   const getBinding = (btnId: string) => {
     return activeMode?.bindings[btnId];
   };
-  const hasBinding = (btnId: string) => {
-    return !!getBinding(btnId);
-  };
   return (
     <div className={cn("relative w-full aspect-video flex items-center justify-center select-none", className)}>
       <svg
@@ -52,14 +54,14 @@ export function ControllerDisplay({ mapping, activeModeId, className }: Controll
       >
         {/* Controller Body Outline */}
         <path
-          d="M 150 100 
-             C 100 100, 50 150, 50 250 
-             C 50 350, 120 380, 180 320 
-             L 220 280 
-             L 380 280 
-             L 420 320 
-             C 480 380, 550 350, 550 250 
-             C 550 150, 500 100, 450 100 
+          d="M 150 100
+             C 100 100, 50 150, 50 250
+             C 50 350, 120 380, 180 320
+             L 220 280
+             L 380 280
+             L 420 320
+             C 480 380, 550 350, 550 250
+             C 550 150, 500 100, 450 100
              Z"
           className="fill-slate-800 stroke-slate-700 stroke-2"
         />
@@ -112,8 +114,7 @@ export function ControllerDisplay({ mapping, activeModeId, className }: Controll
                         className={cn(
                           "transition-colors duration-200",
                           isActive ? "fill-cyan-600 stroke-cyan-400" : "fill-slate-700 stroke-slate-600",
-                          // @ts-ignore - color is optional
-                          def.color && !isActive ? def.color + "/20" : ""
+                          def.color && !isActive ? `${def.color} opacity-20` : ""
                         )}
                       />
                     ) : null}
@@ -130,7 +131,7 @@ export function ControllerDisplay({ mapping, activeModeId, className }: Controll
                     )}
                     {'type' in def && def.type === 'rect' && (
                       <text
-                        x={def.x! + def.w!/2} y={def.y! + def.h!/2}
+                        x={def.x + def.w/2} y={def.y + def.h/2}
                         dy={4}
                         textAnchor="middle"
                         className="fill-white text-[10px] font-bold pointer-events-none"
