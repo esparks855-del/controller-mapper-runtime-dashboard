@@ -77,14 +77,7 @@ function updateWranglerJsonc() {
 }
 
 function runSetupCommands() {
-    const commands = [
-    "bun add react-dropzone@^14.2.0",
-    "bun add monaco-editor@^0.47.0",
-    "bun add @monaco-editor/react@^4.6.0",
-    "bun add zustand",
-    "bun install react react-dom",
-    "bun add @radix-ui/react-dialog @radix-ui/react-tabs"
-];
+    const commands = [];
     
     if (commands.length === 0) {
         console.log('⊘ No setup commands to run');
