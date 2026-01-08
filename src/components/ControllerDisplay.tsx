@@ -7,6 +7,8 @@ interface ControllerDisplayProps {
   mapping: Mapping | null;
   activeModeId: string | null;
   className?: string;
+  onButtonSelect?: (buttonId: string) => void;
+  selectedButtonId?: string | null;
 }
 type BaseButton = { label: string; };
 type CircleButton = BaseButton & { cx: number; cy: number; r: number; color?: string };
@@ -20,7 +22,7 @@ const BUTTONS: Record<string, ButtonDef> = {
   B: { cx: 460, cy: 190, r: 18, label: 'B', color: 'fill-red-500' },
   X: { cx: 380, cy: 190, r: 18, label: 'X', color: 'fill-blue-500' },
   Y: { cx: 420, cy: 150, r: 18, label: 'Y', color: 'fill-yellow-500' },
-  // D-Pad (Simplified as circles for hit targets, visually a cross)
+  // D-Pad
   DpadUp: { cx: 180, cy: 230, r: 12, label: '↑' },
   DpadDown: { cx: 180, cy: 270, r: 12, label: '↓' },
   DpadLeft: { cx: 160, cy: 250, r: 12, label: '←' },
@@ -32,13 +34,19 @@ const BUTTONS: Record<string, ButtonDef> = {
   // Sticks (Click)
   LS: { cx: 180, cy: 150, r: 25, label: 'LS' },
   RS: { cx: 380, cy: 270, r: 25, label: 'RS' },
-  // Shoulders & Triggers (Represented as paths or rects at top)
+  // Shoulders & Triggers
   LB: { type: 'rect', x: 120, y: 60, w: 80, h: 30, rx: 5, label: 'LB' },
   RB: { type: 'rect', x: 400, y: 60, w: 80, h: 30, rx: 5, label: 'RB' },
   LT: { type: 'path', d: "M 130 30 Q 170 30 190 50 L 110 50 Q 110 30 130 30", label: 'LT' },
   RT: { type: 'path', d: "M 470 30 Q 430 30 410 50 L 490 50 Q 490 30 470 30", label: 'RT' },
 };
-export function ControllerDisplay({ mapping, activeModeId, className }: ControllerDisplayProps) {
+export function ControllerDisplay({ 
+  mapping, 
+  activeModeId, 
+  className, 
+  onButtonSelect,
+  selectedButtonId 
+}: ControllerDisplayProps) {
   const activeMode = useMemo(() => {
     return mapping?.modes.find(m => m.id === activeModeId);
   }, [mapping, activeModeId]);
@@ -72,6 +80,7 @@ export function ControllerDisplay({ mapping, activeModeId, className }: Controll
           {Object.entries(BUTTONS).map(([id, def]) => {
             const binding = getBinding(id);
             const isActive = !!binding;
+            const isSelected = id === selectedButtonId;
             // Tooltip Content
             const tooltipContent = isActive ? (
               <div className="space-y-1 text-xs">
@@ -89,14 +98,32 @@ export function ControllerDisplay({ mapping, activeModeId, className }: Controll
                   <motion.g
                     whileHover={{ scale: 1.1 }}
                     whileTap={{ scale: 0.95 }}
-                    className="cursor-pointer"
+                    className={cn(
+                      "cursor-pointer transition-all duration-200",
+                      isSelected ? "opacity-100" : "opacity-90 hover:opacity-100"
+                    )}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onButtonSelect?.(id);
+                    }}
                   >
+                    {/* Selection Ring */}
+                    {isSelected && (
+                      <>
+                        {'cx' in def ? (
+                          <circle cx={def.cx} cy={def.cy} r={def.r + 4} className="fill-none stroke-white stroke-2 animate-pulse" />
+                        ) : 'type' in def && def.type === 'rect' ? (
+                          <rect x={def.x - 4} y={def.y - 4} width={def.w + 8} height={def.h + 8} rx={def.rx + 2} className="fill-none stroke-white stroke-2 animate-pulse" />
+                        ) : null}
+                      </>
+                    )}
                     {/* Render Shape based on definition */}
                     {'d' in def ? (
                       <path
                         d={def.d}
                         className={cn(
                           "transition-colors duration-200",
+                          isSelected ? "fill-cyan-500 stroke-white" : 
                           isActive ? "fill-cyan-600 stroke-cyan-400" : "fill-slate-700 stroke-slate-600"
                         )}
                       />
@@ -105,6 +132,7 @@ export function ControllerDisplay({ mapping, activeModeId, className }: Controll
                         x={def.x} y={def.y} width={def.w} height={def.h} rx={def.rx}
                         className={cn(
                           "transition-colors duration-200",
+                          isSelected ? "fill-cyan-500 stroke-white" :
                           isActive ? "fill-cyan-600 stroke-cyan-400" : "fill-slate-700 stroke-slate-600"
                         )}
                       />
@@ -113,8 +141,9 @@ export function ControllerDisplay({ mapping, activeModeId, className }: Controll
                         cx={def.cx} cy={def.cy} r={def.r}
                         className={cn(
                           "transition-colors duration-200",
+                          isSelected ? "fill-cyan-500 stroke-white" :
                           isActive ? "fill-cyan-600 stroke-cyan-400" : "fill-slate-700 stroke-slate-600",
-                          def.color && !isActive ? `${def.color} opacity-20` : ""
+                          def.color && !isActive && !isSelected ? `${def.color} opacity-20` : ""
                         )}
                       />
                     ) : null}

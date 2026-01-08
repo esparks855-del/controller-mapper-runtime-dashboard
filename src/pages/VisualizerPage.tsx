@@ -1,11 +1,10 @@
-import React, { useEffect } from 'react';
+import React, { useState } from 'react';
 import { Editor } from '@monaco-editor/react';
 import { useConfigStore } from '@/store/configStore';
 import { ControllerDisplay } from '@/components/ControllerDisplay';
+import { BindingEditor } from '@/components/BindingEditor';
 import { AppLayout } from '@/components/layout/AppLayout';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { AlertCircle, CheckCircle2 } from 'lucide-react';
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '@/components/ui/resizable';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -17,12 +16,22 @@ export function VisualizerPage() {
   const setRawJson = useConfigStore(s => s.setRawJson);
   const setActiveModeId = useConfigStore(s => s.setActiveModeId);
   const isMobile = useIsMobile();
+  const [selectedButtonId, setSelectedButtonId] = useState<string | null>(null);
   // Handle editor changes
   const handleEditorChange = (value: string | undefined) => {
     if (value !== undefined) {
       setRawJson(value);
     }
   };
+  const handleButtonSelect = (buttonId: string) => {
+    setSelectedButtonId(buttonId);
+  };
+  const handleEditorClose = () => {
+    setSelectedButtonId(null);
+  };
+  // Get current binding for the selected button
+  const activeMode = config?.modes.find(m => m.id === activeModeId);
+  const currentBinding = selectedButtonId && activeMode ? activeMode.bindings[selectedButtonId] : undefined;
   return (
     <AppLayout container={false} className="h-screen overflow-hidden flex flex-col">
       <div className="flex-1 h-full">
@@ -96,12 +105,17 @@ export function VisualizerPage() {
                   <div className="w-full max-w-3xl animate-fade-in">
                     <ControllerDisplay 
                       mapping={config} 
-                      activeModeId={activeModeId} 
+                      activeModeId={activeModeId}
+                      onButtonSelect={handleButtonSelect}
+                      selectedButtonId={selectedButtonId}
                     />
                     <div className="mt-8 text-center">
                       <h3 className="text-xl font-bold text-white">{config.title || "Untitled Profile"}</h3>
                       <p className="text-sm text-muted-foreground">
                         {config.modes.find(m => m.id === activeModeId)?.name || "Unknown Mode"}
+                      </p>
+                      <p className="text-xs text-muted-foreground mt-2">
+                        Click any button to edit its binding
                       </p>
                     </div>
                   </div>
@@ -115,6 +129,16 @@ export function VisualizerPage() {
             </div>
           </ResizablePanel>
         </ResizablePanelGroup>
+        {/* Binding Editor Sheet */}
+        {selectedButtonId && activeModeId && (
+          <BindingEditor
+            isOpen={!!selectedButtonId}
+            onClose={handleEditorClose}
+            buttonId={selectedButtonId}
+            modeId={activeModeId}
+            currentBinding={currentBinding}
+          />
+        )}
       </div>
     </AppLayout>
   );
