@@ -40,12 +40,12 @@ const BUTTONS: Record<string, ButtonDef> = {
   LT: { type: 'path', d: "M 130 30 Q 170 30 190 50 L 110 50 Q 110 30 130 30", label: 'LT' },
   RT: { type: 'path', d: "M 470 30 Q 430 30 410 50 L 490 50 Q 490 30 470 30", label: 'RT' },
 };
-export function ControllerDisplay({ 
-  mapping, 
-  activeModeId, 
-  className, 
+export function ControllerDisplay({
+  mapping,
+  activeModeId,
+  className,
   onButtonSelect,
-  selectedButtonId 
+  selectedButtonId
 }: ControllerDisplayProps) {
   const activeMode = useMemo(() => {
     return mapping?.modes.find(m => m.id === activeModeId);
@@ -60,6 +60,22 @@ export function ControllerDisplay({
         className="w-full h-full max-w-[800px] drop-shadow-2xl"
         xmlns="http://www.w3.org/2000/svg"
       >
+        <defs>
+          <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+            <feGaussianBlur stdDeviation="3.5" result="coloredBlur" />
+            <feMerge>
+              <feMergeNode in="coloredBlur" />
+              <feMergeNode in="SourceGraphic" />
+            </feMerge>
+          </filter>
+          <filter id="glow-strong" x="-50%" y="-50%" width="200%" height="200%">
+            <feGaussianBlur stdDeviation="6" result="coloredBlur" />
+            <feMerge>
+              <feMergeNode in="coloredBlur" />
+              <feMergeNode in="SourceGraphic" />
+            </feMerge>
+          </filter>
+        </defs>
         {/* Controller Body Outline */}
         <path
           d="M 150 100
@@ -71,10 +87,10 @@ export function ControllerDisplay({
              C 480 380, 550 350, 550 250
              C 550 150, 500 100, 450 100
              Z"
-          className="fill-slate-800 stroke-slate-700 stroke-2"
+          className="fill-slate-900 stroke-slate-700 stroke-2 drop-shadow-xl"
         />
         {/* Decorative Lines */}
-        <path d="M 220 280 Q 300 300 380 280" className="fill-none stroke-slate-900/50 stroke-2" />
+        <path d="M 220 280 Q 300 300 380 280" className="fill-none stroke-slate-800 stroke-2" />
         {/* Render Buttons */}
         <TooltipProvider delayDuration={0}>
           {Object.entries(BUTTONS).map(([id, def]) => {
@@ -111,9 +127,17 @@ export function ControllerDisplay({
                     {isSelected && (
                       <>
                         {'cx' in def ? (
-                          <circle cx={def.cx} cy={def.cy} r={def.r + 4} className="fill-none stroke-white stroke-2 animate-pulse" />
+                          <circle 
+                            cx={def.cx} cy={def.cy} r={def.r + 6} 
+                            className="fill-none stroke-cyan-400 stroke-2 animate-pulse" 
+                            filter="url(#glow-strong)"
+                          />
                         ) : 'type' in def && def.type === 'rect' ? (
-                          <rect x={def.x - 4} y={def.y - 4} width={def.w + 8} height={def.h + 8} rx={def.rx + 2} className="fill-none stroke-white stroke-2 animate-pulse" />
+                          <rect 
+                            x={def.x - 6} y={def.y - 6} width={def.w + 12} height={def.h + 12} rx={def.rx + 2} 
+                            className="fill-none stroke-cyan-400 stroke-2 animate-pulse" 
+                            filter="url(#glow-strong)"
+                          />
                         ) : null}
                       </>
                     )}
@@ -121,29 +145,32 @@ export function ControllerDisplay({
                     {'d' in def ? (
                       <path
                         d={def.d}
+                        filter={isActive || isSelected ? "url(#glow)" : undefined}
                         className={cn(
-                          "transition-colors duration-200",
-                          isSelected ? "fill-cyan-500 stroke-white" : 
-                          isActive ? "fill-cyan-600 stroke-cyan-400" : "fill-slate-700 stroke-slate-600"
+                          "transition-all duration-200",
+                          isSelected ? "fill-cyan-500 stroke-white stroke-2" :
+                          isActive ? "fill-cyan-900/80 stroke-cyan-400 stroke-2" : "fill-slate-800 stroke-slate-600"
                         )}
                       />
                     ) : 'type' in def && def.type === 'rect' ? (
                       <rect
                         x={def.x} y={def.y} width={def.w} height={def.h} rx={def.rx}
+                        filter={isActive || isSelected ? "url(#glow)" : undefined}
                         className={cn(
-                          "transition-colors duration-200",
-                          isSelected ? "fill-cyan-500 stroke-white" :
-                          isActive ? "fill-cyan-600 stroke-cyan-400" : "fill-slate-700 stroke-slate-600"
+                          "transition-all duration-200",
+                          isSelected ? "fill-cyan-500 stroke-white stroke-2" :
+                          isActive ? "fill-cyan-900/80 stroke-cyan-400 stroke-2" : "fill-slate-800 stroke-slate-600"
                         )}
                       />
                     ) : 'cx' in def ? (
                       <circle
                         cx={def.cx} cy={def.cy} r={def.r}
+                        filter={isActive || isSelected ? "url(#glow)" : undefined}
                         className={cn(
-                          "transition-colors duration-200",
-                          isSelected ? "fill-cyan-500 stroke-white" :
-                          isActive ? "fill-cyan-600 stroke-cyan-400" : "fill-slate-700 stroke-slate-600",
-                          def.color && !isActive && !isSelected ? `${def.color} opacity-20` : ""
+                          "transition-all duration-200",
+                          isSelected ? "fill-cyan-500 stroke-white stroke-2" :
+                          isActive ? "fill-cyan-900/80 stroke-cyan-400 stroke-2" : "fill-slate-800 stroke-slate-600",
+                          def.color && !isActive && !isSelected ? `${def.color} opacity-30` : ""
                         )}
                       />
                     ) : null}
@@ -153,7 +180,10 @@ export function ControllerDisplay({
                         x={def.cx} y={def.cy}
                         dy={4}
                         textAnchor="middle"
-                        className="fill-white text-[10px] font-bold pointer-events-none"
+                        className={cn(
+                          "text-[10px] font-bold pointer-events-none transition-colors",
+                          isSelected || isActive ? "fill-white" : "fill-slate-400"
+                        )}
                       >
                         {def.label}
                       </text>
@@ -163,7 +193,10 @@ export function ControllerDisplay({
                         x={def.x + def.w/2} y={def.y + def.h/2}
                         dy={4}
                         textAnchor="middle"
-                        className="fill-white text-[10px] font-bold pointer-events-none"
+                        className={cn(
+                          "text-[10px] font-bold pointer-events-none transition-colors",
+                          isSelected || isActive ? "fill-white" : "fill-slate-400"
+                        )}
                       >
                         {def.label}
                       </text>

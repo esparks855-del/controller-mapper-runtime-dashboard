@@ -13,7 +13,6 @@ interface ConfigState {
   setActiveModeId: (id: string | null) => void;
   updateBinding: (modeId: string, buttonId: string, binding: Binding) => void;
   reset: () => void;
-  saveToLibrary: () => void;
 }
 export const useConfigStore = create<ConfigState>((set, get) => ({
   config: DEFAULT_MAPPING,
@@ -31,8 +30,8 @@ export const useConfigStore = create<ConfigState>((set, get) => ({
           rawJson: json,
           validationError: null,
           // If current active mode doesn't exist in new config, switch to default
-          activeModeId: result.data.modes.find(m => m.id === get().activeModeId) 
-            ? get().activeModeId 
+          activeModeId: result.data.modes.find(m => m.id === get().activeModeId)
+            ? get().activeModeId
             : result.data.defaultMode,
           currentProfileId: profileId || null
         });
@@ -95,8 +94,5 @@ export const useConfigStore = create<ConfigState>((set, get) => ({
     validationError: null,
     activeModeId: 'default',
     currentProfileId: null
-  }),
-  saveToLibrary: () => {
-    console.log("Save to library triggered");
-  }
+  })
 }));

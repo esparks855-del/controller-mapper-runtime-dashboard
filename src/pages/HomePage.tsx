@@ -1,6 +1,6 @@
 import React, { useCallback } from 'react';
 import { useDropzone } from 'react-dropzone';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Upload, Gamepad2, Code2, ArrowRight, Zap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -25,7 +25,7 @@ export function HomePage() {
     };
     reader.readAsText(file);
   }, [loadConfig, navigate]);
-  const { getRootProps, getInputProps, isDragActive } = useDropzone({ 
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
     accept: { 'application/json': ['.json'] },
     maxFiles: 1
@@ -36,7 +36,7 @@ export function HomePage() {
         {/* Hero Section */}
         <section className="relative text-center space-y-6 py-12 md:py-20">
           <div className="absolute inset-0 -z-10 bg-gradient-to-b from-cyan-500/5 via-transparent to-transparent blur-3xl" />
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
@@ -48,7 +48,7 @@ export function HomePage() {
             </span>
             Runtime Engine v1.0 Ready
           </motion.div>
-          <motion.h1 
+          <motion.h1
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.1 }}
@@ -56,7 +56,7 @@ export function HomePage() {
           >
             Master Your <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-600">Inputs</span>
           </motion.h1>
-          <motion.p 
+          <motion.p
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.2 }}
@@ -64,7 +64,7 @@ export function HomePage() {
           >
             The ultimate companion dashboard for your Windows Controller Runtime. Visualize, validate, and manage your mapping profiles with precision.
           </motion.p>
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.3 }}
@@ -73,8 +73,8 @@ export function HomePage() {
             <Button size="lg" className="h-12 px-8 text-base bg-cyan-600 hover:bg-cyan-700 text-white shadow-lg shadow-cyan-900/20" onClick={() => navigate('/visualizer')}>
               Open Visualizer <ArrowRight className="ml-2 w-4 h-4" />
             </Button>
-            <Button size="lg" variant="outline" className="h-12 px-8 text-base">
-              Download Runtime
+            <Button size="lg" variant="outline" className="h-12 px-8 text-base" asChild>
+              <Link to="/docs">Download Runtime</Link>
             </Button>
           </motion.div>
         </section>
@@ -85,10 +85,10 @@ export function HomePage() {
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.5, delay: 0.4 }}
           >
-            <div 
-              {...getRootProps()} 
+            <div
+              {...getRootProps()}
               className={`
-                relative group cursor-pointer overflow-hidden rounded-2xl border-2 border-dashed 
+                relative group cursor-pointer overflow-hidden rounded-2xl border-2 border-dashed
                 transition-all duration-300 p-12 text-center
                 ${isDragActive ? 'border-cyan-500 bg-cyan-500/5' : 'border-muted-foreground/25 hover:border-cyan-500/50 hover:bg-secondary/50'}
               `}
