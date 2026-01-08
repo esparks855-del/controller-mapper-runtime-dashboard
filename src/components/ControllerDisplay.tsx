@@ -1,28 +1,21 @@
 import React, { useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { Mapping } from '@/lib/schema';
+import { Mapping, Mode } from '@/lib/schema';
 import { cn } from '@/lib/utils';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 interface ControllerDisplayProps {
   mapping: Mapping | null;
   activeModeId: string | null;
   className?: string;
-  onButtonSelect?: (buttonId: string) => void;
-  selectedButtonId?: string | null;
 }
-type BaseButton = { label: string; };
-type CircleButton = BaseButton & { cx: number; cy: number; r: number; color?: string };
-type RectButton = BaseButton & { type: 'rect'; x: number; y: number; w: number; h: number; rx: number };
-type PathButton = BaseButton & { type: 'path'; d: string };
-type ButtonDef = CircleButton | RectButton | PathButton;
 // Button definitions with SVG paths and positions
-const BUTTONS: Record<string, ButtonDef> = {
+const BUTTONS = {
   // Face Buttons
   A: { cx: 420, cy: 230, r: 18, label: 'A', color: 'fill-green-500' },
   B: { cx: 460, cy: 190, r: 18, label: 'B', color: 'fill-red-500' },
   X: { cx: 380, cy: 190, r: 18, label: 'X', color: 'fill-blue-500' },
   Y: { cx: 420, cy: 150, r: 18, label: 'Y', color: 'fill-yellow-500' },
-  // D-Pad
+  // D-Pad (Simplified as circles for hit targets, visually a cross)
   DpadUp: { cx: 180, cy: 230, r: 12, label: '↑' },
   DpadDown: { cx: 180, cy: 270, r: 12, label: '↓' },
   DpadLeft: { cx: 160, cy: 250, r: 12, label: '←' },
@@ -34,24 +27,21 @@ const BUTTONS: Record<string, ButtonDef> = {
   // Sticks (Click)
   LS: { cx: 180, cy: 150, r: 25, label: 'LS' },
   RS: { cx: 380, cy: 270, r: 25, label: 'RS' },
-  // Shoulders & Triggers
+  // Shoulders & Triggers (Represented as paths or rects at top)
   LB: { type: 'rect', x: 120, y: 60, w: 80, h: 30, rx: 5, label: 'LB' },
   RB: { type: 'rect', x: 400, y: 60, w: 80, h: 30, rx: 5, label: 'RB' },
   LT: { type: 'path', d: "M 130 30 Q 170 30 190 50 L 110 50 Q 110 30 130 30", label: 'LT' },
   RT: { type: 'path', d: "M 470 30 Q 430 30 410 50 L 490 50 Q 490 30 470 30", label: 'RT' },
 };
-export function ControllerDisplay({
-  mapping,
-  activeModeId,
-  className,
-  onButtonSelect,
-  selectedButtonId
-}: ControllerDisplayProps) {
+export function ControllerDisplay({ mapping, activeModeId, className }: ControllerDisplayProps) {
   const activeMode = useMemo(() => {
     return mapping?.modes.find(m => m.id === activeModeId);
   }, [mapping, activeModeId]);
   const getBinding = (btnId: string) => {
     return activeMode?.bindings[btnId];
+  };
+  const hasBinding = (btnId: string) => {
+    return !!getBinding(btnId);
   };
   return (
     <div className={cn("relative w-full aspect-video flex items-center justify-center select-none", className)}>
@@ -60,43 +50,26 @@ export function ControllerDisplay({
         className="w-full h-full max-w-[800px] drop-shadow-2xl"
         xmlns="http://www.w3.org/2000/svg"
       >
-        <defs>
-          <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
-            <feGaussianBlur stdDeviation="3.5" result="coloredBlur" />
-            <feMerge>
-              <feMergeNode in="coloredBlur" />
-              <feMergeNode in="SourceGraphic" />
-            </feMerge>
-          </filter>
-          <filter id="glow-strong" x="-50%" y="-50%" width="200%" height="200%">
-            <feGaussianBlur stdDeviation="6" result="coloredBlur" />
-            <feMerge>
-              <feMergeNode in="coloredBlur" />
-              <feMergeNode in="SourceGraphic" />
-            </feMerge>
-          </filter>
-        </defs>
         {/* Controller Body Outline */}
         <path
-          d="M 150 100
-             C 100 100, 50 150, 50 250
-             C 50 350, 120 380, 180 320
-             L 220 280
-             L 380 280
-             L 420 320
-             C 480 380, 550 350, 550 250
-             C 550 150, 500 100, 450 100
+          d="M 150 100 
+             C 100 100, 50 150, 50 250 
+             C 50 350, 120 380, 180 320 
+             L 220 280 
+             L 380 280 
+             L 420 320 
+             C 480 380, 550 350, 550 250 
+             C 550 150, 500 100, 450 100 
              Z"
-          className="fill-slate-900 stroke-slate-700 stroke-2 drop-shadow-xl"
+          className="fill-slate-800 stroke-slate-700 stroke-2"
         />
         {/* Decorative Lines */}
-        <path d="M 220 280 Q 300 300 380 280" className="fill-none stroke-slate-800 stroke-2" />
+        <path d="M 220 280 Q 300 300 380 280" className="fill-none stroke-slate-900/50 stroke-2" />
         {/* Render Buttons */}
         <TooltipProvider delayDuration={0}>
           {Object.entries(BUTTONS).map(([id, def]) => {
             const binding = getBinding(id);
             const isActive = !!binding;
-            const isSelected = id === selectedButtonId;
             // Tooltip Content
             const tooltipContent = isActive ? (
               <div className="space-y-1 text-xs">
@@ -114,63 +87,33 @@ export function ControllerDisplay({
                   <motion.g
                     whileHover={{ scale: 1.1 }}
                     whileTap={{ scale: 0.95 }}
-                    className={cn(
-                      "cursor-pointer transition-all duration-200",
-                      isSelected ? "opacity-100" : "opacity-90 hover:opacity-100"
-                    )}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onButtonSelect?.(id);
-                    }}
+                    className="cursor-pointer"
                   >
-                    {/* Selection Ring */}
-                    {isSelected && (
-                      <>
-                        {'cx' in def ? (
-                          <circle 
-                            cx={def.cx} cy={def.cy} r={def.r + 6} 
-                            className="fill-none stroke-cyan-400 stroke-2 animate-pulse" 
-                            filter="url(#glow-strong)"
-                          />
-                        ) : 'type' in def && def.type === 'rect' ? (
-                          <rect 
-                            x={def.x - 6} y={def.y - 6} width={def.w + 12} height={def.h + 12} rx={def.rx + 2} 
-                            className="fill-none stroke-cyan-400 stroke-2 animate-pulse" 
-                            filter="url(#glow-strong)"
-                          />
-                        ) : null}
-                      </>
-                    )}
                     {/* Render Shape based on definition */}
                     {'d' in def ? (
                       <path
                         d={def.d}
-                        filter={isActive || isSelected ? "url(#glow)" : undefined}
                         className={cn(
-                          "transition-all duration-200",
-                          isSelected ? "fill-cyan-500 stroke-white stroke-2" :
-                          isActive ? "fill-cyan-900/80 stroke-cyan-400 stroke-2" : "fill-slate-800 stroke-slate-600"
+                          "transition-colors duration-200",
+                          isActive ? "fill-cyan-600 stroke-cyan-400" : "fill-slate-700 stroke-slate-600"
                         )}
                       />
                     ) : 'type' in def && def.type === 'rect' ? (
                       <rect
                         x={def.x} y={def.y} width={def.w} height={def.h} rx={def.rx}
-                        filter={isActive || isSelected ? "url(#glow)" : undefined}
                         className={cn(
-                          "transition-all duration-200",
-                          isSelected ? "fill-cyan-500 stroke-white stroke-2" :
-                          isActive ? "fill-cyan-900/80 stroke-cyan-400 stroke-2" : "fill-slate-800 stroke-slate-600"
+                          "transition-colors duration-200",
+                          isActive ? "fill-cyan-600 stroke-cyan-400" : "fill-slate-700 stroke-slate-600"
                         )}
                       />
                     ) : 'cx' in def ? (
                       <circle
                         cx={def.cx} cy={def.cy} r={def.r}
-                        filter={isActive || isSelected ? "url(#glow)" : undefined}
                         className={cn(
-                          "transition-all duration-200",
-                          isSelected ? "fill-cyan-500 stroke-white stroke-2" :
-                          isActive ? "fill-cyan-900/80 stroke-cyan-400 stroke-2" : "fill-slate-800 stroke-slate-600",
-                          def.color && !isActive && !isSelected ? `${def.color} opacity-30` : ""
+                          "transition-colors duration-200",
+                          isActive ? "fill-cyan-600 stroke-cyan-400" : "fill-slate-700 stroke-slate-600",
+                          // @ts-ignore - color is optional
+                          def.color && !isActive ? def.color + "/20" : ""
                         )}
                       />
                     ) : null}
@@ -180,23 +123,17 @@ export function ControllerDisplay({
                         x={def.cx} y={def.cy}
                         dy={4}
                         textAnchor="middle"
-                        className={cn(
-                          "text-[10px] font-bold pointer-events-none transition-colors",
-                          isSelected || isActive ? "fill-white" : "fill-slate-400"
-                        )}
+                        className="fill-white text-[10px] font-bold pointer-events-none"
                       >
                         {def.label}
                       </text>
                     )}
                     {'type' in def && def.type === 'rect' && (
                       <text
-                        x={def.x + def.w/2} y={def.y + def.h/2}
+                        x={def.x! + def.w!/2} y={def.y! + def.h!/2}
                         dy={4}
                         textAnchor="middle"
-                        className={cn(
-                          "text-[10px] font-bold pointer-events-none transition-colors",
-                          isSelected || isActive ? "fill-white" : "fill-slate-400"
-                        )}
+                        className="fill-white text-[10px] font-bold pointer-events-none"
                       >
                         {def.label}
                       </text>

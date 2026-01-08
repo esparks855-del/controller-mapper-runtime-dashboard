@@ -1,148 +1,147 @@
-// Home page of the app, Currently a demo page for demonstration.
-// Please rewrite this file to implement your own logic. Do not replace or delete it, simply rewrite this HomePage.tsx file.
-import { useEffect } from 'react'
-import { Sparkles } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { ThemeToggle } from '@/components/ThemeToggle'
-import { Toaster, toast } from '@/components/ui/sonner'
-import { create } from 'zustand'
-import { useShallow } from 'zustand/react/shallow'
-import { AppLayout } from '@/components/layout/AppLayout'
-
-// Timer store: independent slice with a clear, minimal API, for demonstration
-type TimerState = {
-  isRunning: boolean;
-  elapsedMs: number;
-  start: () => void;
-  pause: () => void;
-  reset: () => void;
-  tick: (deltaMs: number) => void;
-}
-
-const useTimerStore = create<TimerState>((set) => ({
-  isRunning: false,
-  elapsedMs: 0,
-  start: () => set({ isRunning: true }),
-  pause: () => set({ isRunning: false }),
-  reset: () => set({ elapsedMs: 0, isRunning: false }),
-  tick: (deltaMs) => set((s) => ({ elapsedMs: s.elapsedMs + deltaMs })),
-}))
-
-// Counter store: separate slice to showcase multiple stores without coupling
-type CounterState = {
-  count: number;
-  inc: () => void;
-  reset: () => void;
-}
-
-const useCounterStore = create<CounterState>((set) => ({
-  count: 0,
-  inc: () => set((s) => ({ count: s.count + 1 })),
-  reset: () => set({ count: 0 }),
-}))
-
-function formatDuration(ms: number): string {
-  const total = Math.max(0, Math.floor(ms / 1000))
-  const m = Math.floor(total / 60)
-  const s = total % 60
-  return `${m}:${s.toString().padStart(2, '0')}`
-}
-
+import React, { useCallback } from 'react';
+import { useDropzone } from 'react-dropzone';
+import { useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
+import { Upload, Gamepad2, Code2, ArrowRight, Zap } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { useConfigStore } from '@/store/configStore';
+import { AppLayout } from '@/components/layout/AppLayout';
+import { toast } from 'sonner';
 export function HomePage() {
-  // Select only what is needed to avoid unnecessary re-renders
-  const { isRunning, elapsedMs } = useTimerStore(
-    useShallow((s) => ({ isRunning: s.isRunning, elapsedMs: s.elapsedMs })),
-  )
-  const start = useTimerStore((s) => s.start)
-  const pause = useTimerStore((s) => s.pause)
-  const resetTimer = useTimerStore((s) => s.reset)
-  const count = useCounterStore((s) => s.count)
-  const inc = useCounterStore((s) => s.inc)
-  const resetCount = useCounterStore((s) => s.reset)
-
-  // Drive the timer only while running; avoid update-depth issues with a scoped RAF
-  useEffect(() => {
-    if (!isRunning) return
-    let raf = 0
-    let last = performance.now()
-    const loop = () => {
-      const now = performance.now()
-      const delta = now - last
-      last = now
-      // Read store API directly to keep effect deps minimal and stable
-      useTimerStore.getState().tick(delta)
-      raf = requestAnimationFrame(loop)
-    }
-    raf = requestAnimationFrame(loop)
-    return () => cancelAnimationFrame(raf)
-  }, [isRunning])
-
-  const onPleaseWait = () => {
-    inc()
-    if (!isRunning) {
-      start()
-      toast.success('Building your app…', {
-        description: 'Hang tight, we\'re setting everything up.',
-      })
-    } else {
-      pause()
-      toast.info('Taking a short pause', {
-        description: 'We\'ll continue shortly.',
-      })
-    }
-  }
-
-  const formatted = formatDuration(elapsedMs)
-
+  const navigate = useNavigate();
+  const loadConfig = useConfigStore(s => s.loadConfig);
+  const onDrop = useCallback((acceptedFiles: File[]) => {
+    const file = acceptedFiles[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const text = e.target?.result as string;
+      if (text) {
+        loadConfig(text);
+        toast.success("Configuration Loaded", { description: `Loaded ${file.name} successfully.` });
+        navigate('/visualizer');
+      }
+    };
+    reader.readAsText(file);
+  }, [loadConfig, navigate]);
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({ 
+    onDrop,
+    accept: { 'application/json': ['.json'] },
+    maxFiles: 1
+  });
   return (
     <AppLayout>
-      <div className="min-h-screen flex flex-col items-center justify-center bg-background text-foreground p-4 overflow-hidden relative">
-        <ThemeToggle />
-        <div className="absolute inset-0 bg-gradient-rainbow opacity-10 dark:opacity-20 pointer-events-none" />
-        <div className="text-center space-y-8 relative z-10 animate-fade-in">
-          <div className="flex justify-center">
-            <div className="w-16 h-16 rounded-2xl bg-gradient-primary flex items-center justify-center shadow-primary floating">
-              <Sparkles className="w-8 h-8 text-white rotating" />
-            </div>
-          </div>
-          <h1 className="text-5xl md:text-7xl font-display font-bold text-balance leading-tight">
-            Creating your <span className="text-gradient">app</span>
-          </h1>
-          <p className="text-lg md:text-xl text-muted-foreground max-w-xl mx-auto text-pretty">
-            Your application would be ready soon.
-          </p>
-          <div className="flex justify-center gap-4">
-            <Button 
-              size="lg"
-              onClick={onPleaseWait}
-              className="btn-gradient px-8 py-4 text-lg font-semibold hover:-translate-y-0.5 transition-all duration-200"
-              aria-live="polite"
+      <div className="space-y-16">
+        {/* Hero Section */}
+        <section className="relative text-center space-y-6 py-12 md:py-20">
+          <div className="absolute inset-0 -z-10 bg-gradient-to-b from-cyan-500/5 via-transparent to-transparent blur-3xl" />
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-secondary/50 border border-secondary text-xs font-medium text-secondary-foreground mb-4"
+          >
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-cyan-500"></span>
+            </span>
+            Runtime Engine v1.0 Ready
+          </motion.div>
+          <motion.h1 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.1 }}
+            className="text-4xl md:text-6xl lg:text-7xl font-bold tracking-tight text-balance"
+          >
+            Master Your <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-600">Inputs</span>
+          </motion.h1>
+          <motion.p 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+            className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto text-pretty"
+          >
+            The ultimate companion dashboard for your Windows Controller Runtime. Visualize, validate, and manage your mapping profiles with precision.
+          </motion.p>
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.3 }}
+            className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4"
+          >
+            <Button size="lg" className="h-12 px-8 text-base bg-cyan-600 hover:bg-cyan-700 text-white shadow-lg shadow-cyan-900/20" onClick={() => navigate('/visualizer')}>
+              Open Visualizer <ArrowRight className="ml-2 w-4 h-4" />
+            </Button>
+            <Button size="lg" variant="outline" className="h-12 px-8 text-base">
+              Download Runtime
+            </Button>
+          </motion.div>
+        </section>
+        {/* Quick Upload Section */}
+        <section className="max-w-3xl mx-auto">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.5, delay: 0.4 }}
+          >
+            <div 
+              {...getRootProps()} 
+              className={`
+                relative group cursor-pointer overflow-hidden rounded-2xl border-2 border-dashed 
+                transition-all duration-300 p-12 text-center
+                ${isDragActive ? 'border-cyan-500 bg-cyan-500/5' : 'border-muted-foreground/25 hover:border-cyan-500/50 hover:bg-secondary/50'}
+              `}
             >
-              Please Wait
-            </Button>
-          </div>
-          <div className="flex items-center justify-center gap-6 text-sm text-muted-foreground">
-            <div>
-              Time elapsed: <span className="font-medium tabular-nums text-foreground">{formatted}</span>
+              <input {...getInputProps()} />
+              <div className="flex flex-col items-center gap-4">
+                <div className="p-4 rounded-full bg-background shadow-sm ring-1 ring-border group-hover:scale-110 transition-transform duration-300">
+                  <Upload className={`w-8 h-8 ${isDragActive ? 'text-cyan-500' : 'text-muted-foreground'}`} />
+                </div>
+                <div className="space-y-1">
+                  <h3 className="text-xl font-semibold">Drop your config here</h3>
+                  <p className="text-sm text-muted-foreground">
+                    Supports .json files exported from the Editor
+                  </p>
+                </div>
+              </div>
             </div>
-            <div>
-              Coins: <span className="font-medium tabular-nums text-foreground">{count}</span>
-            </div>
-          </div>
-          <div className="flex justify-center gap-2">
-            <Button variant="outline" size="sm" onClick={() => { resetTimer(); resetCount(); toast('Reset complete') }}>
-              Reset
-            </Button>
-            <Button variant="outline" size="sm" onClick={() => { inc(); toast('Coin added') }}>
-              Add Coin
-            </Button>
-          </div>
-        </div>
-        <footer className="absolute bottom-8 text-center text-muted-foreground/80">
-          <p>Powered by Cloudflare</p>
-        </footer>
-        <Toaster richColors closeButton />
+          </motion.div>
+        </section>
+        {/* Features Grid */}
+        <section className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <Card className="bg-card/50 backdrop-blur border-muted/50">
+            <CardHeader>
+              <Gamepad2 className="w-10 h-10 text-cyan-500 mb-2" />
+              <CardTitle>Interactive Visualizer</CardTitle>
+              <CardDescription>See your mappings come to life on a virtual controller.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              Verify tap, hold, and double-tap actions instantly with visual feedback.
+            </CardContent>
+          </Card>
+          <Card className="bg-card/50 backdrop-blur border-muted/50">
+            <CardHeader>
+              <Code2 className="w-10 h-10 text-purple-500 mb-2" />
+              <CardTitle>Schema Validation</CardTitle>
+              <CardDescription>Never crash your runtime with invalid configs.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              Built-in Zod validation ensures your JSON structure is perfect before deployment.
+            </CardContent>
+          </Card>
+          <Card className="bg-card/50 backdrop-blur border-muted/50">
+            <CardHeader>
+              <Zap className="w-10 h-10 text-yellow-500 mb-2" />
+              <CardTitle>Instant Preview</CardTitle>
+              <CardDescription>Edit JSON and see changes reflect in real-time.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              Monaco-powered editor allows for quick tweaks and immediate visual verification.
+            </CardContent>
+          </Card>
+        </section>
       </div>
     </AppLayout>
-  )
+  );
 }
