@@ -36,7 +36,7 @@ export function BindingEditor({ isOpen, onClose, buttonId, modeId, currentBindin
     }
     // Update the specific field
     if (newBinding[trigger]) {
-      // @ts-ignore - we know the type matches
+      // @ts-expect-error - we know the type matches
       newBinding[trigger]![field] = value;
     }
     setBinding(newBinding);
@@ -55,8 +55,8 @@ export function BindingEditor({ isOpen, onClose, buttonId, modeId, currentBindin
       <div className="space-y-4 py-4">
         <div className="space-y-2">
           <Label>Action Type</Label>
-          <Select 
-            value={action.type} 
+          <Select
+            value={action.type}
             onValueChange={(val) => handleActionChange(trigger, 'type', val)}
           >
             <SelectTrigger>
@@ -73,8 +73,8 @@ export function BindingEditor({ isOpen, onClose, buttonId, modeId, currentBindin
         </div>
         <div className="space-y-2">
           <Label>Value / Key Code</Label>
-          <Input 
-            value={action.value} 
+          <Input
+            value={action.value}
             onChange={(e) => handleActionChange(trigger, 'value', e.target.value)}
             placeholder={action.type === 'key' ? 'e.g., VK_SPACE, A, B' : 'Value'}
           />
